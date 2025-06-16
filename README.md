@@ -51,7 +51,7 @@ For example let's say you are recieving JSON from a web service that looks like:
     "name": "Some Name",
     "id": 1,
     metadata: {
-        ... and object with arbitrary keys/values
+        // ... an object with arbitrary keys/values
     }
 }
 ```
