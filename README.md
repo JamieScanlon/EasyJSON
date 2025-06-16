@@ -42,24 +42,40 @@ dependencies: [
 ]
 ```
 
+## Motivation
+
+If you've ever tried to work with arbitrary `[String: Any]` objects where you don't always know the precise schema you will often run into problems. 
+For example let's say you are recieving JSON from a web service that looks like:
+``` javascript
+{
+    "name": "Some Name",
+    "id": 1,
+    metadata: {
+        ... and object with arbitrary keys/values
+    }
+}
+```
+
+In swift you would normally try to leverage a `Codable` type to parse the object:
+``` swift
+struct MyObject: Codable {
+    var name: String
+    var id: Int
+    var metadata: [String: Any]
+}
+```
+
+This will give you errors because `[String: Any]` does not conform to `Codable`. It's equally painful if you also want `MyObject` to conform to `Sendable` because `[String: Any]` cannot conform to `Sendable`
+
+**EasyJson** is intended to fix this issue by providing an object that is both `Codable` and `Sendable` 
+In order for it to be more ergonomic it provides easy ways to convert to and from `[String: Any]`. Although you can create and manipulate the type directly, it is mostly intended to intermediate type.
+
 ## Usage
 
 ### Basic Usage
 
 ```swift
 import EasyJSON
-
-// Create a JSON object
-let json = JSON.object([
-    "name": .string("John Doe"),
-    "age": .integer(30),
-    "isActive": .boolean(true),
-    "scores": .array([.integer(85), .integer(92), .integer(88)]),
-    "address": .object([
-        "street": .string("123 Main St"),
-        "city": .string("New York")
-    ])
-])
 
 // Convert to [String: Any]
 let dictionary = json.literalValue as? [String: Any]
@@ -74,6 +90,18 @@ let jsonFromDict = try JSON([
         "street": "123 Main St",
         "city": "New York"
     ]
+])
+
+// Create a JSON object from scratch
+let json = JSON.object([
+    "name": .string("John Doe"),
+    "age": .integer(30),
+    "isActive": .boolean(true),
+    "scores": .array([.integer(85), .integer(92), .integer(88)]),
+    "address": .object([
+        "street": .string("123 Main St"),
+        "city": .string("New York")
+    ])
 ])
 ```
 
