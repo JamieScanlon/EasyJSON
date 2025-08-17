@@ -563,4 +563,86 @@ struct EasyJSONTests {
         #expect(secondValues?[0] as? Int == 3)
         #expect(secondValues?[1] as? Int == 4)
     }
+
+    @Test("literalValue preserves numeric types")
+    func testLiteralValuePreservesNumericTypes() throws {
+        let json = JSON.object([
+            "i": .integer(1),
+            "d": .double(1.0),
+            "mix": .array([.integer(2), .double(2.5), .integer(3)])
+        ])
+
+        let dict = json.literalValue as? [String: Any]
+        try #require(dict != nil)
+
+        #expect((dict?["i"]) is Int)
+        #expect((dict?["d"]) is Double)
+        #expect(dict?["i"] as? Int == 1)
+        #expect(dict?["d"] as? Double == 1.0)
+
+        let mix = dict?["mix"] as? [Any]
+        try #require(mix != nil)
+        #expect((mix?[0]) is Int)
+        #expect((mix?[1]) is Double)
+        #expect((mix?[2]) is Int)
+        #expect(mix?[0] as? Int == 2)
+        #expect(mix?[1] as? Double == 2.5)
+        #expect(mix?[2] as? Int == 3)
+    }
+
+    @Test("literalValue round-trips from Any")
+    func testLiteralValueRoundTripFromAny() throws {
+        let original: [String: Any] = [
+            "string": "hello",
+            "int": 7,
+            "double": 7.5,
+            "bool": false,
+            "array": [1, 2.0, true, "x"] as [Any],
+            "object": [
+                "a": 1,
+                "b": 2.0,
+                "c": ["nested": "y"]
+            ] as [String: Any]
+        ]
+
+        let json = try JSON(original)
+        let roundTripped = json.literalValue as? [String: Any]
+        try #require(roundTripped != nil)
+
+        #expect(roundTripped?["string"] as? String == "hello")
+        #expect(roundTripped?["int"] as? Int == 7)
+        #expect(roundTripped?["double"] as? Double == 7.5)
+        #expect(roundTripped?["bool"] as? Bool == false)
+
+        let array = roundTripped?["array"] as? [Any]
+        try #require(array != nil)
+        #expect(array?.count == 4)
+        #expect(array?[0] as? Int == 1)
+        #expect(array?[1] as? Double == 2.0)
+        #expect(array?[2] as? Bool == true)
+        #expect(array?[3] as? String == "x")
+
+        let object = roundTripped?["object"] as? [String: Any]
+        try #require(object != nil)
+        #expect(object?["a"] as? Int == 1)
+        #expect(object?["b"] as? Double == 2.0)
+
+        let nested = object?["c"] as? [String: Any]
+        try #require(nested != nil)
+        #expect(nested?["nested"] as? String == "y")
+    }
+
+    @Test("literalValue handles empty structures")
+    func testLiteralValueEmptyStructures() throws {
+        let emptyArrayJSON = JSON.array([])
+        let emptyObjectJSON = JSON.object([:])
+
+        let arr = emptyArrayJSON.literalValue as? [Any]
+        let obj = emptyObjectJSON.literalValue as? [String: Any]
+
+        try #require(arr != nil)
+        try #require(obj != nil)
+        #expect(arr?.isEmpty == true)
+        #expect(obj?.isEmpty == true)
+    }
 }

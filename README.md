@@ -105,6 +105,45 @@ let json = JSON.object([
 ])
 ```
 
+### Using `literalValue`
+
+`literalValue` returns the native Swift representation of a `JSON` value, recursively converting nested arrays and objects so you can interoperate with existing APIs that expect `[String: Any]` or `[Any]`.
+
+- Mapping:
+  - `JSON.string` → `String`
+  - `JSON.integer` → `Int`
+  - `JSON.double` → `Double`
+  - `JSON.boolean` → `Bool`
+  - `JSON.array` → `[Any]` (elements converted recursively)
+  - `JSON.object` → `[String: Any]` (values converted recursively)
+
+Notes:
+- **Numeric types are preserved**: `Int` remains `Int`, and `Double` remains `Double` (no implicit coercion).
+- Empty arrays/objects become empty `[Any]`/`[String: Any]`.
+
+Examples:
+
+```swift
+// Convert a JSON object to [String: Any]
+let dict = json.literalValue as? [String: Any]
+
+// Round-trip from [String: Any]
+let original: [String: Any] = [
+    "name": "Jane",
+    "age": 30,          // Int
+    "score": 99.5,      // Double
+    "flags": [true, 1, 2.0, "x"] as [Any],
+    "meta": ["k": "v"]
+]
+let easy = try JSON(original)
+let back = easy.literalValue as? [String: Any]
+
+// Mixed arrays preserve element types
+if let flags = back?["flags"] as? [Any] {
+    // flags[0] is Bool, flags[1] is Int, flags[2] is Double, flags[3] is String
+}
+```
+
 ### Encoding and Decoding
 
 ```swift
