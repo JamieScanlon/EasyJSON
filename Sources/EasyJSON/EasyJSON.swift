@@ -47,7 +47,7 @@ public enum JSON: Codable, Sendable {
         self = try parse(object)
     }
     
-    var literalValue: Any {
+    public var literalValue: Any {
         
         func parse(_ value: JSON) -> Any {
             switch value {
